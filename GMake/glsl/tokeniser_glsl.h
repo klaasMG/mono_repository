@@ -13,16 +13,14 @@ namespace glsl {
     namespace fs = std::filesystem;
     std::string ReadFilePath(const fs::path& path);
 
-
-
-    inline int whore = 0;
     namespace fs = std::filesystem;
 
-    enum class ParserError {
+    enum class TokenizerError {
+        NONE DEFAULT_ERROR,
         UNEXPECTED_TOKEN,
     };
 
-    std::string to_string(ParserError error);
+    std::string to_string(TokenizerError error);
 
     enum class TokenType {
         LEFT_BRACKET,
@@ -69,12 +67,14 @@ namespace glsl {
         DECREMENT,
         ARROW,
         DOUBLE_STAR,
-        ERROR
+        ERROR,
+        NONE,
     };
 
     enum class LiteralType {
         INT,
         FLOAT,
+        BOOL,
     };
 
     struct Token {
@@ -119,6 +119,48 @@ namespace glsl {
         GLSL_460
     };
 
+    enum class GLSLProfile : uint8_t {
+        None,
+        Core,
+        Compatibility,
+        ES
+    };
+
+    struct GLSLVersionInfo {
+        GLSLVersion version;
+        GLSLProfile profile;
+    };
+
+    inline GLSLVersionInfo parseVersion(int version, std::string_view profile) {
+        GLSLProfile p = GLSLProfile::None;
+
+        if (profile == "core")
+            p = GLSLProfile::Core;
+        else if (profile == "compatibility")
+            p = GLSLProfile::Compatibility;
+        else if (profile == "es")
+            p = GLSLProfile::ES;
+
+        switch (version) {
+        case 110: return {GLSLVersion::GLSL_110, p};
+        case 120: return {GLSLVersion::GLSL_120, p};
+        case 130: return {GLSLVersion::GLSL_130, p};
+        case 140: return {GLSLVersion::GLSL_140, p};
+        case 150: return {GLSLVersion::GLSL_150, p};
+        case 330: return {GLSLVersion::GLSL_330, p};
+        case 400: return {GLSLVersion::GLSL_400, p};
+        case 410: return {GLSLVersion::GLSL_410, p};
+        case 420: return {GLSLVersion::GLSL_420, p};
+        case 430: return {GLSLVersion::GLSL_430, p};
+        case 440: return {GLSLVersion::GLSL_440, p};
+        case 450: return {GLSLVersion::GLSL_450, p};
+        case 460: return {GLSLVersion::GLSL_460, p};
+
+        default:
+            throw std::runtime_error("Unsupported GLSL version");
+        }
+    }
+
     enum class TokenErrorType {
         NONE,
         UNKNOWN
@@ -134,7 +176,7 @@ namespace glsl {
         static bool is_alpha(char c);
         static bool is_num(char c);
         static bool is_whitespace(char c);
-        Result<std::vector<Token>, ParserError> tokenize(const fs::path& text_in);
+        Result<std::vector<Token>, TokenizerError> tokenize(const fs::path& text_in);
         std::string text;
         size_t char_pos;
         size_t line_number;
@@ -145,10 +187,5 @@ namespace glsl {
         std::map<std::string, Undef> undefs;
         std::vector<IfdefState> ifdef_stack;
         bool tokenizing = true;
-    };
-
-    class Parser {
-    public:
-        Parser();
     };
 }

@@ -8,7 +8,7 @@
 #include "LiteralTypes.h"
 #include "GmakeFunctionParser.h"
 #include "ExceptionHandler.h"
-#include "glsl/glsl.h"
+#include "glsl/tokeniser_glsl.h"
 #include <iostream>
 #include <string>
 #include <fstream>

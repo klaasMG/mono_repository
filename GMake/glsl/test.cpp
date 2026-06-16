@@ -1,4 +1,4 @@
-#include "glsl.h"
+#include "tokeniser_glsl.h"
 #include <string>
 #include <vector>
 #include <array>
@@ -109,7 +109,7 @@ int main(){
         fs::path full_path = fs::path("shaders") / shader_file_name;
         auto result = tokeniser.tokenize(full_path);
         auto err = result.check_error();
-        if (err != glsl::ParserError{}) {
+        if (err != glsl::TokenizerError{}) {
             fmt::println("Error tokenizing {}: {}", shader_file_name, glsl::to_string(err));
             result.Handle_Error();
             continue;

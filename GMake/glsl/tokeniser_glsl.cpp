@@ -1,4 +1,4 @@
-#include "glsl.h"
+#include "tokeniser_glsl.h"
 
 namespace glsl {
 
@@ -90,7 +90,7 @@ namespace glsl {
         pos_in_line = 0;
     }
 
-    Result<std::vector<Token>, ParserError> Tokeniser::tokenize(const fs::path& text_in) {
+    Result<std::vector<Token>, TokenizerError> Tokeniser::tokenize(const fs::path& text_in) {
         text = remove_backslashes(ReadFilePath(text_in));
         bool is_unknown_char = false;
         std::string unknown_chars;
@@ -127,6 +127,9 @@ namespace glsl {
                 }
                 if (is_keyword) {
                     push_token(TokenType::KEYWORD, ident, {pos_one, pos_two});
+                }
+                else if (ident == "true" || ident == "false") {
+                    push_token(TokenType::LITERAL_TYPE, ident, {pos_in_line, pos_in_line}, {LiteralType::BOOL});
                 }
                 else {
                     bool is_define = false;
@@ -400,7 +403,8 @@ namespace glsl {
                         throw std::runtime_error("unknown preprocessor_command \"" + command + "\"");
                     }
                 }
-            } else {
+            }
+            else {
                 switch (c) {
                     case '{': {
                         push_token(TokenType::LEFT_BRACKET, "", {pos_in_line, pos_in_line});
@@ -599,7 +603,7 @@ namespace glsl {
         }
         std::vector<Token> tokens_out = tokens;
         reset_tokeniser();
-        return Result<std::vector<Token>, ParserError>(tokens_out);
+        return Result<std::vector<Token>, TokenizerError>(tokens_out);
     }
 
 
@@ -671,10 +675,10 @@ namespace glsl {
         return is_whitespace;
     }
 
-    std::string to_string(ParserError error) {
+    std::string to_string(TokenizerError error) {
         std::string error_string;
         switch (error) {
-        case ParserError::UNEXPECTED_TOKEN:{
+        case TokenizerError::UNEXPECTED_TOKEN:{
                 return "unexpected token";
             };
         }

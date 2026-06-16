@@ -1,6 +1,7 @@
 #pragma once
 #include "Error.h"
 #include <iostream>
+#define DEFAULT_ERROR = 0
 
 std::string inline ErrorType_to_string(BaseErrorType type) {
     switch (type) {
