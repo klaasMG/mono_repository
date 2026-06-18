@@ -50,7 +50,7 @@ requires(T value) {
 };
 
 template<typename ErrorEnum>
-concept IsErrorEnum = !std::is_enum_v<ErrorEnum> || HasToString<ErrorEnum>;
+concept IsErrorEnum = std::is_enum_v<ErrorEnum> && HasToString<ErrorEnum>;
 
 template<typename Data, IsErrorEnum Error>
 class [[nodiscard]] Result {

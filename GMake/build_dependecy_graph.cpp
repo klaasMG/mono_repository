@@ -75,10 +75,10 @@ int main(int argc, char* argv[]) {
 	            std::string error_message = "This flag: " + arg + " is not allowed\n" + "Do you wish to proceed?(Y/N)";
 	            std::cout << error_message << std::endl;
 	            std::string continue_program;
-	            std::cin >> continue_program;
-	            continue_program = toLower(continue_program);
 	            bool is_solved = false;
 	            while (!is_solved){
+	                std::cin >> continue_program;
+	                continue_program = toLower(continue_program);
 	                if (continue_program == "y"){
 	                    is_solved = true;
 	                }

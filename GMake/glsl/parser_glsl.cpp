@@ -1,6 +1,56 @@
 #include "parser_glsl.h"
 
 namespace glsl{
+    bool TypeRegistry::has(const std::string& name) const{
+        if (type_map.contains(name)){
+            return true;
+        }
+        return false;
+    }
+
+    Result<TypeInfo, TypeError> TypeRegistry::get(const std::string& name){
+        if (has(name)){
+            return type_map.at(name);
+        }
+        return TypeError::TYPE_NOT_FOUND;
+    }
+
+    Result<Empty, TypeError>  TypeRegistry::register_type(const std::string& name, const std::string& description, const std::optional<std::map<std::string, Field>>& fields){
+        if (fields.has_value()){
+            for (const std::pair<const std::string, Field>& field : fields.value()){
+                if (!has(field.second.type_name)){
+                    return TypeError::INVALID_FIELD_TYPE_NAME;
+                }
+            }
+        }
+        if (has(name)){
+            return TypeError::TYPE_ALREADY_EXISTS;
+        }
+        const TypeInfo type_info = TypeInfo{.is_build_in = false, .name = name, .description = description, .group = GLSLTypeGroup::STRUCT, .fields = fields};
+        type_map.emplace(name, type_info);
+        return Empty{};
+    }
+
+    Result<Empty, TypeError>  TypeRegistry::register_build_in_type(const TypeDec& type){
+        if (type.fields.has_value()){
+            for (const std::pair<const std::string, Field>& field : type.fields.value()){
+                if (!has(field.first)){
+                    return TypeError::INVALID_FIELD_TYPE_NAME;
+                }
+            }
+        }
+        if (has(type.name)){
+            return TypeError::TYPE_ALREADY_EXISTS;
+        }
+        const TypeInfo type_info = TypeInfo{.is_build_in = true, .name = type.name, .description = type.description, .group = type.group, .fields = type.fields};
+        type_map.emplace(type_info.name, type_info);
+        return Empty{};
+    }
+
+    template<typename T>
+    std::vector<T> slice(const std::vector<T>& v, size_t start, size_t end){
+        return std::vector<T>{v.begin() + start, v.begin() + end};
+    }
     std::vector<std::string> splitWords(const std::string& str) {
         std::istringstream ss(str);
         std::vector<std::string> words;
@@ -17,6 +67,9 @@ namespace glsl{
         nodes = {};
         this->tokens = tokens;
         token_pos = 0;
+        end_token_pos = 0;
+        start_token_pos = 0;
+        shader_node = {};
     }
 
     Result<Token, ParserError> Parser::peek_token(const uint8_t& look_ahead) const {
@@ -29,6 +82,7 @@ namespace glsl{
 
     Result<Token, ParserError> Parser::consume_token(){
         Result<Token,ParserError> result_token = peek_token();
+        end_token_pos = token_pos;
         token_pos++;
         return result_token;
     }
@@ -48,7 +102,7 @@ namespace glsl{
         std::vector<std::string> strings = splitWords(data);
         GLSLVersionInfo version_info = parseVersion(std::stoi(strings.at(0)), strings.at(1));
         shader_node.glsl_version = version_info;
-        shader_node.tokens = {};
+        shader_node.nodes = {};
         while (token_pos < input.size()){
             Result<Token, ParserError> token_result = consume_token();
             ParserError error = token_result.check_error();
@@ -57,16 +111,29 @@ namespace glsl{
             }
             token_result.Handle_Error();
             Token token = token_result.GetData();
-            if (token.type == TokenType::IDENT){
-
+            if (token.type == TokenType::KEYWORD){
+                Node node;
+                if (token.value == "out" || token.value == "in"){
+                    StorageModifierNode storage_modifier_node;
+                    if (token.value == "out"){
+                        storage_modifier_node.is_out = StorageModifier::OUT;
+                    }
+                    else{
+                        storage_modifier_node.is_out = StorageModifier::IN;
+                    }
+                }
             }
         }
         throw std::runtime_error("not yet implemented");
         return nodes;
     }
 
-    Result<Node, ParserError> Parser::push_node(const Node& node){
-        shader_node.tokens.push_back(nodes.size());
+    template <IsNode T>
+    Result<Node, ParserError> Parser::push_node(T& node){
+        std::vector<Token> tokens_node = slice(tokens, start_token_pos, end_token_pos);
+        start_token_pos = token_pos; end_token_pos = token_pos;
+        shader_node.nodes.push_back(nodes.size());
+        node.tokens = tokens_node;
         nodes.push_back(node);
         return node;
     }

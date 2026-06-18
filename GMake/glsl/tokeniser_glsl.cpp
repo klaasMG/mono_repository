@@ -643,7 +643,7 @@ namespace glsl {
     }
 
     bool Tokeniser::is_alpha(char c) {
-        std::vector<char> alpha_chars = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+        static constexpr std::array<char, 52> alpha_chars = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
         bool is_alpha = false;
         for (const char& alpha_char : alpha_chars) {
             if (alpha_char == c) {
@@ -654,7 +654,7 @@ namespace glsl {
     }
 
     bool Tokeniser::is_num(char c) {
-        std::vector<char> num_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+        static constexpr std::array<char, 10> num_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
         bool is_num = false;
         for (const char& num_char : num_chars) {
             if (num_char == c) {
@@ -665,7 +665,7 @@ namespace glsl {
     }
 
     bool Tokeniser::is_whitespace(char c) {
-        std::vector<char> whitespace_chars = {' ', '\t', '\r', '\n'};
+        static constexpr std::array<char, 4> whitespace_chars = {' ', '\t', '\r', '\n'};
         bool is_whitespace = false;
         for (const char& whitespace_char : whitespace_chars) {
             if (whitespace_char == c) {
@@ -681,6 +681,9 @@ namespace glsl {
         case TokenizerError::UNEXPECTED_TOKEN:{
                 return "unexpected token";
             };
+        case TokenizerError::NONE:{
+            return "none";
+        }
         }
         throw std::runtime_error("how did this happen from this fucking position");
     }

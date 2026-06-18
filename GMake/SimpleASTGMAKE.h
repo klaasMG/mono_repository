@@ -51,7 +51,7 @@ namespace gmake {
 
     class ASTGMAKE {
         std::vector<Token> tokens;
-        int currentToken;
+        size_t currentToken;
 
     public:
         ASTGMAKE(const std::vector<Token>& input_tokens);

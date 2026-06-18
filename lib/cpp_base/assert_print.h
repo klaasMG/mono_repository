@@ -4,7 +4,7 @@
 
 #ifndef SUPERBUILD_ASSERT_PRINT_H
 #define SUPERBUILD_ASSERT_PRINT_H
-
+#include <iostream>
 #define PRINT(text) std::cout << text << std::endl
 #define ASSERT_MSG(cond, msg)\
 do {\
