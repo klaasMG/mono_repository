@@ -17,16 +17,24 @@ namespace glsl{
         VOID,
     };
 
+    struct TypeInfo;
+    struct TypeDec;
+
     struct Field{
-        std::string name;
-        std::string type_name;
+        std::unique_ptr<TypeInfo> type_name;
+        std::vector<std::string> name_aliases;
+    };
+
+    struct FieldDec{
+        std::unique_ptr<TypeDec> type_name;
+        std::vector<std::string> name_aliases;
     };
 
     struct TypeDec{
         std::string name;
         std::string description;
         GLSLTypeGroup group;
-        std::optional<std::map<std::string, Field>> fields;
+        std::optional<std::map<std::unique_ptr<TypeDec>, FieldDec>> fields;
     };
 
     struct TypeInfo{
@@ -34,7 +42,7 @@ namespace glsl{
         std::string name;
         std::string description;
         GLSLTypeGroup group;
-        std::optional<std::map<std::string, Field>> fields;
+        std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields;
     };
 
     enum class TypeError{
@@ -189,8 +197,8 @@ namespace glsl{
         inline const TypeDec USubpassInputMS = {"usubpassInputMS", "unsigned multisample subpass input",     GLSLTypeGroup::SAMPLER, std::nullopt};
 
         class Buildins{
-        public:
-            std::vector<TypeDec> buildin_type_decs = {};
+            public:
+                std::vector<TypeDec> buildin_type_decs = {};
         };
     }
 
@@ -199,8 +207,8 @@ namespace glsl{
     class TypeRegistry{
     public:
         Result<Empty, TypeError> register_build_in_type(const TypeDec& desc);
-        Result<Empty, TypeError> register_type(const std::string& name, const std::string& description, const std::optional<std::map<std::string, Field>>& fields);
-        Result<TypeInfo, TypeError> get(const std::string& name);
+        Result<Empty, TypeError> register_type(const std::string& name, const std::string& description, std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields);
+        Result<TypeInfo*, TypeError> get(const std::string& name);
         [[nodiscard]] bool has(const std::string& name) const;
         std::map<std::string, TypeInfo> type_map;
     };

@@ -8,33 +8,33 @@ namespace glsl{
         return false;
     }
 
-    Result<TypeInfo, TypeError> TypeRegistry::get(const std::string& name){
+    Result<TypeInfo*, TypeError> TypeRegistry::get(const std::string& name){
         if (has(name)){
-            return type_map.at(name);
+            return &type_map.at(name);
         }
         return TypeError::TYPE_NOT_FOUND;
     }
 
-    Result<Empty, TypeError>  TypeRegistry::register_type(const std::string& name, const std::string& description, const std::optional<std::map<std::string, Field>>& fields){
+    Result<Empty, TypeError>  TypeRegistry::register_type(const std::string& name, const std::string& description, std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields){
         if (fields.has_value()){
-            for (const std::pair<const std::string, Field>& field : fields.value()){
-                if (!has(field.second.type_name)){
-                    return TypeError::INVALID_FIELD_TYPE_NAME;
-                }
+            for (const std::pair<const std::unique_ptr<TypeInfo>, Field>& field : fields.value()){
+                    if (!has(field.first->name)){
+                        return TypeError::INVALID_FIELD_TYPE_NAME;
+                    }
             }
         }
         if (has(name)){
             return TypeError::TYPE_ALREADY_EXISTS;
         }
-        const TypeInfo type_info = TypeInfo{.is_build_in = false, .name = name, .description = description, .group = GLSLTypeGroup::STRUCT, .fields = fields};
-        type_map.emplace(name, type_info);
+        TypeInfo type_info = TypeInfo{.is_build_in = false, .name = name, .description = description, .group = GLSLTypeGroup::STRUCT, .fields = std::move(fields)};
+        type_map.emplace(name, std::move(type_info));
         return Empty{};
     }
 
     Result<Empty, TypeError>  TypeRegistry::register_build_in_type(const TypeDec& type){
         if (type.fields.has_value()){
-            for (const std::pair<const std::string, Field>& field : type.fields.value()){
-                if (!has(field.first)){
+            for (const std::pair<const std::unique_ptr<TypeDec>, FieldDec>& field : type.fields.value()){
+                if (!has(field.first->name)){
                     return TypeError::INVALID_FIELD_TYPE_NAME;
                 }
             }
@@ -42,8 +42,38 @@ namespace glsl{
         if (has(type.name)){
             return TypeError::TYPE_ALREADY_EXISTS;
         }
-        const TypeInfo type_info = TypeInfo{.is_build_in = true, .name = type.name, .description = type.description, .group = type.group, .fields = type.fields};
-        type_map.emplace(type_info.name, type_info);
+        std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields = {};
+        if (type.fields.has_value()){
+            for (const std::pair<const std::unique_ptr<TypeDec>, FieldDec>& field : *type.fields){
+                if (!has(field.first->name)){
+                    throw std::runtime_error("Type " + field.first->name + " not registered");
+                }
+                const TypeInfo& src = type_map.at(field.first->name);
+                auto key = std::make_unique<TypeInfo>(TypeInfo{
+                    .is_build_in = src.is_build_in,
+                    .name = src.name,
+                    .description = src.description,
+                    .group = src.group,
+                    .fields = std::nullopt
+                });
+                auto value = Field{
+         std::make_unique<TypeInfo>(TypeInfo{
+                    .is_build_in = src.is_build_in,
+                    .name = src.name,
+                    .description = src.description,
+                    .group = src.group,
+                    .fields = std::nullopt
+                }),
+                field.second.name_aliases
+            };
+        fields->emplace(std::move(key), std::move(value));
+            }
+        }
+        else{
+            fields = std::nullopt;
+        }
+        TypeInfo type_info = TypeInfo{.is_build_in = true, .name = type.name, .description = type.description, .group = type.group, .fields = std::move(fields)};
+        type_map.emplace(type_info.name, std::move(type_info));
         return Empty{};
     }
 

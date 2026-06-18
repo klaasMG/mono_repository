@@ -8,5 +8,6 @@
 3. In any loop or if statement in brackets must be in brackets
    1. Not allowed: if (treu) std::cout << "thing" << std::endl;
    2. Allowed: if (treu) { std::cout << "thing" << std::endl }
+4. between any operator like the + or = and it suroundings is one and exactly a single space
 # **Functions**
 1. explicit returns are mandatory if the function is not from an external library
