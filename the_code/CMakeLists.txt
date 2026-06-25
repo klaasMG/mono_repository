@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 project(event_struct LANGUAGES CXX)
-
+add_compile_options(-femulated-tls)
 # Find Python (for headers and libs)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
@@ -55,3 +55,5 @@ set_target_properties(font_holder PROPERTIES
 set_target_properties(font_holder PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY
         ${CMAKE_SOURCE_DIR}/the_ui_tree_build)
+
+target_link_options(font_holder PRIVATE -lpthread)

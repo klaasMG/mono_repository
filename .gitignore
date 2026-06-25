@@ -30,3 +30,5 @@ cpp_toolchains
 tooling.txt
 /agents.md
 /AGENTS.md
+build
+/build

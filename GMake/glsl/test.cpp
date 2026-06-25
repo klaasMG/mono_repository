@@ -52,6 +52,7 @@ std::string to_string(TokenType type) {
         case TokenType::ARROW: return "ARROW";
         case TokenType::DOUBLE_STAR: return "DOUBLE_STAR";
         case TokenType::ERROR: return "ERROR";
+    case TokenType::NONE: return "NONE";
     }
     return "UNKNOWN";
 }
@@ -60,6 +61,7 @@ std::string to_string(LiteralType type) {
     switch (type) {
         case LiteralType::INT: return "INT";
         case LiteralType::FLOAT: return "FLOAT";
+        case LiteralType::BOOL: return "BOOL";
     }
     return "UNKNOWN";
 }

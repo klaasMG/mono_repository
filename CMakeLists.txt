@@ -3,6 +3,8 @@ set(CMAKE_CXX_STANDARD 23)
 #MESSAGE(WARNING "set youre own toolchain if it errors this is my code not production if you have a fix tell me")
 set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS} --target=x86_64-w64-mingw32 --sysroot=C:/Users/klaas/cpp_toolchains/mingw")
 set(CMAKE_RC_COMPILER "C:/Users/klaas/cpp_toolchains/LLVM/bin/llvm-rc.exe")
+set(CMAKE_CXX_COMPILER "C:/Users/klaas/cpp_toolchains/LLVM/bin/clang++.exe")
+set(CMAKE_C_COMPILER "C:/Users/klaas/cpp_toolchains/LLVM/bin/clang.exe")
 project(Superbuild LANGUAGES CXX)
 include(ProcessorCount)
 ProcessorCount(N)
@@ -18,7 +20,6 @@ set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} ${N})
 #endif()
 
 function(link_compiler_library_statically target)
-
     if(MSVC)
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" PARENT_SCOPE)
     endif()
@@ -35,6 +36,7 @@ option(BUILD_ASSET_MANAGER "Build libD" ON)
 option(BUILD_AUDIO_ENGINE "Build libE" ON)
 option(BUILD_LOGGER "Build libF" ON)
 option(BUILD_STRING_FORMATTER "Build libG" ON)
+option(UI_BUILD "gmake build" ON)
 
 message(STATUS "this is a hotfix and should be changed later")
 include_directories(${CMAKE_SOURCE_DIR}/lib/cpp)
@@ -51,6 +53,10 @@ add_library(common_lib
 target_include_directories(common_lib PUBLIC
     ${CMAKE_SOURCE_DIR}/lib/cpp_base
 )
+
+if (UI_BUILD)
+    add_custom_target(run_tool ALL COMMAND GMake test.gmake)
+endif ()
 
 if (BUILD_STRING_FORMATTER)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/vendor/cpp/fmt)
