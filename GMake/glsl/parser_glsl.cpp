@@ -1,6 +1,15 @@
 #include "parser_glsl.h"
 
 namespace glsl{
+    TypeRegistry::TypeRegistry(){
+        for (const TypeDec& build_in : BuiltinTypes::build_ins){
+            Result<Empty, TypeError> error = register_build_in_type(build_in);
+            if (error.check_error() != TypeError::NONE){
+                std::cout << to_string(error.check_error()) << std::endl;
+            }
+        }
+    }
+
     bool TypeRegistry::has(const std::string& name) const{
         if (type_map.contains(name)){
             return true;
@@ -15,9 +24,9 @@ namespace glsl{
         return TypeError::TYPE_NOT_FOUND;
     }
 
-    Result<Empty, TypeError>  TypeRegistry::register_type(const std::string& name, const std::string& description, std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields){
+    Result<Empty, TypeError>  TypeRegistry::register_type(const std::string& name, const std::string& description, std::optional<std::map<std::shared_ptr<TypeInfo>, Field>> fields){
         if (fields.has_value()){
-            for (const std::pair<const std::unique_ptr<TypeInfo>, Field>& field : fields.value()){
+            for (const std::pair<const std::shared_ptr<TypeInfo>, Field>& field : fields.value()){
                     if (!has(field.first->name)){
                         return TypeError::INVALID_FIELD_TYPE_NAME;
                     }
@@ -33,7 +42,7 @@ namespace glsl{
 
     Result<Empty, TypeError>  TypeRegistry::register_build_in_type(const TypeDec& type){
         if (type.fields.has_value()){
-            for (const std::pair<const std::unique_ptr<TypeDec>, FieldDec>& field : type.fields.value()){
+            for (const std::pair<const std::shared_ptr<TypeDec>, FieldDec>& field : type.fields.value()){
                 if (!has(field.first->name)){
                     return TypeError::INVALID_FIELD_TYPE_NAME;
                 }
@@ -42,9 +51,9 @@ namespace glsl{
         if (has(type.name)){
             return TypeError::TYPE_ALREADY_EXISTS;
         }
-        std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields = {};
+        std::optional<std::map<std::shared_ptr<TypeInfo>, Field>> fields = {};
         if (type.fields.has_value()){
-            for (const std::pair<const std::unique_ptr<TypeDec>, FieldDec>& field : *type.fields){
+            for (const std::pair<const std::shared_ptr<TypeDec>, FieldDec>& field : *type.fields){
                 if (!has(field.first->name)){
                     throw std::runtime_error("Type " + field.first->name + " not registered");
                 }

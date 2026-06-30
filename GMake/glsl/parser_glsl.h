@@ -21,12 +21,12 @@ namespace glsl{
     struct TypeDec;
 
     struct Field{
-        std::unique_ptr<TypeInfo> type_name;
+        std::shared_ptr<TypeInfo> type_name;
         std::vector<std::string> name_aliases;
     };
 
     struct FieldDec{
-        std::unique_ptr<TypeDec> type_name;
+        std::shared_ptr<TypeDec> type_name;
         std::vector<std::string> name_aliases;
     };
 
@@ -34,7 +34,7 @@ namespace glsl{
         std::string name;
         std::string description;
         GLSLTypeGroup group;
-        std::optional<std::map<std::unique_ptr<TypeDec>, FieldDec>> fields;
+        std::optional<std::map<std::shared_ptr<TypeDec>, FieldDec>> fields;
     };
 
     struct TypeInfo{
@@ -42,7 +42,7 @@ namespace glsl{
         std::string name;
         std::string description;
         GLSLTypeGroup group;
-        std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields;
+        std::optional<std::map<std::shared_ptr<TypeInfo>, Field>> fields;
     };
 
     enum class TypeError{
@@ -71,21 +71,185 @@ namespace glsl{
         inline const TypeDec Float          = {"float",          "32-bit floating-point",                       GLSLTypeGroup::SCALAR, std::nullopt};
         inline const TypeDec Double         = {"double",         "64-bit floating-point",                       GLSLTypeGroup::SCALAR, std::nullopt};
 
-        inline const TypeDec Vec2           = {"vec2",           "2-component float vector",                    GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec Vec3           = {"vec3",           "3-component float vector",                    GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec Vec4           = {"vec4",           "4-component float vector",                    GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec IVec2          = {"ivec2",          "2-component signed integer vector",           GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec IVec3          = {"ivec3",          "3-component signed integer vector",           GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec IVec4          = {"ivec4",          "4-component signed integer vector",           GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec UVec2          = {"uvec2",          "2-component unsigned integer vector",         GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec UVec3          = {"uvec3",          "3-component unsigned integer vector",         GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec UVec4          = {"uvec4",          "4-component unsigned integer vector",         GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec DVec2          = {"dvec2",          "2-component double vector",                   GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec DVec3          = {"dvec3",          "3-component double vector",                   GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec DVec4          = {"dvec4",          "4-component double vector",                   GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec BVec2          = {"bvec2",          "2-component bool vector",                     GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec BVec3          = {"bvec3",          "3-component bool vector",                     GLSLTypeGroup::VECTOR, std::nullopt};
-        inline const TypeDec BVec4          = {"bvec4",          "4-component bool vector",                     GLSLTypeGroup::VECTOR, std::nullopt};
+        inline const TypeDec Vec2 = {
+            "vec2", "2-component float vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"y", "g", "t"}}},
+            }
+        };
+
+        inline const TypeDec Vec3 = {
+            "vec3", "3-component float vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"z", "b", "p"}}},
+            }
+        };
+
+        inline const TypeDec Vec4 = {
+            "vec4", "4-component float vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"z", "b", "p"}}},
+                {std::make_shared<TypeDec>(TypeDec{"w", "w component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Float), {"w", "a", "q"}}},
+            }
+        };
+
+        inline const TypeDec IVec2 = {
+            "ivec2", "2-component signed integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"y", "g", "t"}}},
+            }
+        };
+
+        inline const TypeDec IVec3 = {
+            "ivec3", "3-component signed integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"z", "b", "p"}}},
+            }
+        };
+
+        inline const TypeDec IVec4 = {
+            "ivec4", "4-component signed integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"z", "b", "p"}}},
+                {std::make_shared<TypeDec>(TypeDec{"w", "w component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Int), {"w", "a", "q"}}},
+            }
+        };
+
+        inline const TypeDec UVec2 = {
+            "uvec2", "2-component unsigned integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"y", "g", "t"}}},
+            }
+        };
+
+        inline const TypeDec UVec3 = {
+            "uvec3", "3-component unsigned integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"z", "b", "p"}}},
+            }
+        };
+
+        inline const TypeDec UVec4 = {
+            "uvec4", "4-component unsigned integer vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"z", "b", "p"}}},
+                {std::make_shared<TypeDec>(TypeDec{"w", "w component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(UInt), {"w", "a", "q"}}},
+            }
+        };
+
+        inline const TypeDec DVec2 = {
+            "dvec2", "2-component double vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"y", "g", "t"}}},
+            }
+        };
+
+        inline const TypeDec DVec3 = {
+            "dvec3", "3-component double vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"z", "b", "p"}}},
+            }
+        };
+
+        inline const TypeDec DVec4 = {
+            "dvec4", "4-component double vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"z", "b", "p"}}},
+                {std::make_shared<TypeDec>(TypeDec{"w", "w component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Double), {"w", "a", "q"}}},
+            }
+        };
+
+        inline const TypeDec BVec2 = {
+            "bvec2", "2-component bool vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"y", "g", "t"}}},
+            }
+        };
+
+        inline const TypeDec BVec3 = {
+            "bvec3", "3-component bool vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"z", "b", "p"}}},
+            }
+        };
+
+        inline const TypeDec BVec4 = {
+            "bvec4", "4-component bool vector", GLSLTypeGroup::VECTOR,
+            std::map<std::shared_ptr<TypeDec>, FieldDec>{
+                {std::make_shared<TypeDec>(TypeDec{"x", "x component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"x", "r", "s"}}},
+                {std::make_shared<TypeDec>(TypeDec{"y", "y component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"y", "g", "t"}}},
+                {std::make_shared<TypeDec>(TypeDec{"z", "z component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"z", "b", "p"}}},
+                {std::make_shared<TypeDec>(TypeDec{"w", "w component", GLSLTypeGroup::SCALAR, std::nullopt}),
+                 FieldDec{std::make_shared<TypeDec>(Bool), {"w", "a", "q"}}},
+            }
+        };
 
         inline const TypeDec Mat2           = {"mat2",           "2x2 float matrix",                            GLSLTypeGroup::MATRIX, std::nullopt};
         inline const TypeDec Mat3           = {"mat3",           "3x3 float matrix",                            GLSLTypeGroup::MATRIX, std::nullopt};
@@ -196,9 +360,15 @@ namespace glsl{
         inline const TypeDec USubpassInput   = {"usubpassInput",   "unsigned integer subpass input",         GLSLTypeGroup::SAMPLER, std::nullopt};
         inline const TypeDec USubpassInputMS = {"usubpassInputMS", "unsigned multisample subpass input",     GLSLTypeGroup::SAMPLER, std::nullopt};
 
-        class Buildins{
-            public:
-                std::vector<TypeDec> buildin_type_decs = {};
+        inline const std::vector<TypeDec> build_ins = {
+            Void, Bool, Int, UInt, Float, Double, Vec2, Vec3, Vec4, IVec2, IVec3, IVec4, UVec2, UVec3, UVec4, DVec2, DVec3, DVec4,
+            BVec2, BVec3, BVec4, Mat2, Mat3, Mat4, Mat2x3, Mat2x4, Mat3x2, Mat3x4, Mat4x2, Mat4x3, DMat2, DMat3, DMat4, DMat2x3, DMat2x4, DMat3x2, DMat3x4, DMat4x2, DMat4x3,
+            Sampler1D, Sampler2D, Sampler3D, SamplerCube, Sampler2DRect, Sampler1DArray, Sampler2DArray, SamplerCubeArray, SamplerBuffer, Sampler2DMS, Sampler2DMSArray, Sampler1DShadow, Sampler2DShadow, SamplerCubeShadow, Sampler2DRectShadow,
+            Sampler1DArrayShadow, Sampler2DArrayShadow, SamplerCubeArrayShadow, ISampler1D, ISampler2D, ISampler3D, ISamplerCube, ISampler2DRect, ISampler1DArray, ISampler2DArray, ISamplerCubeArray, ISamplerBuffer,
+            ISampler2DMS, ISampler2DMSArray, USampler1D, USampler2D, USampler3D, USamplerCube, USampler2DRect, USampler1DArray, USampler2DArray, USamplerCubeArray, USamplerBuffer,
+            USampler2DMS, USampler2DMSArray, Image1D, Image2D, Image3D, ImageCube, Image2DRect, Image1DArray, Image2DArray, ImageCubeArray, ImageBuffer, Image2DMS, Image2DMSArray,
+            IImage1D, IImage2D, IImage3D, IImageCube, IImage2DRect, IImage1DArray, IImage2DArray, IImageCubeArray, IImageBuffer, IImage2DMS, IImage2DMSArray, UImage1D, UImage2D, UImage3D, UImageCube, UImage2DRect,
+            UImage1DArray, UImage2DArray, UImageCubeArray, UImageBuffer, UImage2DMS, UImage2DMSArray, AtomicUInt, SubpassInput, SubpassInputMS, ISubpassInput, ISubpassInputMS, USubpassInput, USubpassInputMS,
         };
     }
 
@@ -206,8 +376,9 @@ namespace glsl{
 
     class TypeRegistry{
     public:
+        TypeRegistry();
         Result<Empty, TypeError> register_build_in_type(const TypeDec& desc);
-        Result<Empty, TypeError> register_type(const std::string& name, const std::string& description, std::optional<std::map<std::unique_ptr<TypeInfo>, Field>> fields);
+        Result<Empty, TypeError> register_type(const std::string& name, const std::string& description, std::optional<std::map<std::shared_ptr<TypeInfo>, Field>> fields);
         Result<TypeInfo*, TypeError> get(const std::string& name);
         [[nodiscard]] bool has(const std::string& name) const;
         std::map<std::string, TypeInfo> type_map;
