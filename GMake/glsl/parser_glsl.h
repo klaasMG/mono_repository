@@ -438,6 +438,8 @@ namespace glsl{
 
     struct StorageModifierNode{
         StorageModifier is_out;
+        TypeInfo type;
+        std::string name;
         std::vector<Token> tokens = {};
     };
 
@@ -446,30 +448,31 @@ namespace glsl{
         FAILED_TO_PUSH,
         END_OF_TOKENS,
     };
-    using Node = std::variant<UnOppNode, BinaryOppNode, ShaderNode>;
+    using Node = std::variant<UnOppNode, BinaryOppNode, ShaderNode, StorageModifierNode>;
 
     template <typename T>
-    concept IsNode = requires(const T& t)
-    {
-        { t.tokens } -> std::same_as<const std::vector<Token>&>;
-        {t} -> std::same_as<const Node&>;
-    };
+    concept IsNode = (std::same_as<T, UnOppNode> || std::same_as<T, BinaryOppNode> || std::same_as<T, ShaderNode> || std::same_as<T, StorageModifierNode>)
+         && requires(const T& t) {
+             { t.tokens } -> std::same_as<const std::vector<Token>&>;
+         };
 
     std::string to_string(ParserError error);
 
     class Parser{
     public:
         Parser(const std::vector<Token>& tokens);
-        std::vector<Node> parse(const std::vector<Node>& input);
+        std::vector<Node> parse(const std::vector<Token>& input);
         [[nodiscard]] Result<Token, ParserError> peek_token(const uint8_t& look_ahead = 0) const;
         Result<Token, ParserError> consume_token();
         template <IsNode T>
-        Result<Node,ParserError> push_node(T& node);
+        Result<T, ParserError> push_node(T& node);
+        TypeInfo match_type_name(const std::string& type_name);
         std::vector<Node> nodes;
         std::vector<Token> tokens;
         size_t token_pos;
         ShaderNode shader_node;
         size_t start_token_pos;
         size_t end_token_pos;
+        TypeRegistry type_registry;
     };
 }

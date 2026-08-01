@@ -91,6 +91,7 @@ namespace glsl {
     }
 
     Result<std::vector<Token>, TokenizerError> Tokeniser::tokenize(const fs::path& text_in) {
+        std::cout << "this" << text_in << std::endl;
         text = remove_backslashes(ReadFilePath(text_in));
         bool is_unknown_char = false;
         std::string unknown_chars;

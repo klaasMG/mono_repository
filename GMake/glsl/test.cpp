@@ -3,6 +3,8 @@
 #include <vector>
 #include <array>
 
+#include "parser_glsl.h"
+
 namespace glsl {
 
 std::string to_string(TokenType type) {
@@ -86,9 +88,7 @@ void print_token(const Token& token) {
                  token.line_number,
                  token.position_range.first,
                  token.position_range.second,
-                 lit_types);
-}
-
+                 lit_types);}
 }
 
 int main(){
@@ -99,6 +99,9 @@ int main(){
     std::string line;
     for (const char& data : file_data){
         if (data == '\n') {
+            if (!line.empty() && line.back() == '\r'){
+                line.pop_back();
+            }
             lines.push_back(line);
             line.clear();
         }
@@ -106,21 +109,45 @@ int main(){
             line.push_back(data);
         }
     }
+    for (const std::string& string : lines){
+        std::cout<<string<<std::endl;
+    }
     for (const std::string& shader_file_name : lines){
+        std::cout << shader_file_name << std::endl;
         glsl::Tokeniser tokeniser;
         fs::path full_path = fs::path("shaders") / shader_file_name;
+        std::cout << full_path << std::endl;
         auto result = tokeniser.tokenize(full_path);
+        std::cout << " i am here " << shader_file_name << std::endl;
         auto err = result.check_error();
+        std::cout << to_string(err) << " thing " << std::endl;
         if (err != glsl::TokenizerError{}) {
             fmt::println("Error tokenizing {}: {}", shader_file_name, glsl::to_string(err));
             result.Handle_Error();
             continue;
         }
         std::vector<glsl::Token> tokens = result.GetData();
+        std::cout << shader_file_name << " die " << std::endl;
         fmt::println("--- {} ({} tokens) ---", shader_file_name, tokens.size());
         for (const auto& token : tokens) {
             glsl::print_token(token);
         }
         result.Handle_Error();
+    }
+
+    for (const fs::directory_entry& entry : fs::directory_iterator("parsable_shaders")) {
+        if (entry.is_regular_file()) {
+            glsl::Tokeniser tokeniser;
+            const fs::path& path = entry.path();
+            Result<std::vector<glsl::Token>, glsl::TokenizerError> tokens_result = tokeniser.tokenize(path);
+            glsl::TokenizerError error = tokens_result.check_error();
+            std::cout << to_string(error) << std::endl;
+            std::vector<glsl::Token> tokens = tokens_result.GetData();
+            for (const auto& token : tokens){
+                glsl::print_token(token);
+            }
+            glsl::Parser parser = glsl::Parser{{}};
+            std::vector<glsl::Node> nodes = parser.parse(tokens);
+        }
     }
 }

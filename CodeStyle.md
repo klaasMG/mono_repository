@@ -11,3 +11,11 @@
 4. between any operator like the + or = and it suroundings is one and exactly a single space
 # **Functions**
 1. explicit returns are mandatory if the function is not from an external library
+2. in the python part use print_wrapper over print
+# **naming**
+1. a class is always named in Pascal case while the rest is named in snake_case
+2. enums should be SCREAMING_SNAKE
+# **headers**
+1. use pragma once
+# **error handling**
+1. use the Result type for error handling it is not yet in python

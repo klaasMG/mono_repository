@@ -126,7 +126,10 @@ namespace glsl{
         return result_token;
     }
 
-    std::vector<Node> Parser::parse(const std::vector<Node>& input){
+
+
+    std::vector<Node> Parser::parse(const std::vector<Token>& input){
+        tokens = input;
         Result<Token, ParserError> result_token = consume_token();
         ParserError parser_error = result_token.check_error();
         if (parser_error != ParserError::NONE){
@@ -160,15 +163,56 @@ namespace glsl{
                     else{
                         storage_modifier_node.is_out = StorageModifier::IN;
                     }
+                    Result<Token, ParserError> type_token_result = consume_token();
+                    if (type_token_result.check_error() != ParserError::NONE){
+                        throw std::runtime_error("a error happened");
+                    }
+                    type_token_result.Handle_Error();
+                    Token type_token = type_token_result.GetData();
+                    if (type_token.type != TokenType::IDENT){
+                        throw std::runtime_error("IDENT expected here");
+                    }
+                    std::string type_name = type_token.value;
+                    TypeInfo type = match_type_name(type_name);
+
+                    storage_modifier_node.type = type;
+                    Result<Token, ParserError> storage_modifier_name_error = consume_token();
+                    if (storage_modifier_name_error.check_error() != ParserError::NONE){
+                        throw std::runtime_error("a error happened");
+                    }
+                    Token storage_modifier_name = storage_modifier_name_error.GetData();
+                    if (storage_modifier_name.type != TokenType::IDENT){
+                        throw std::runtime_error("IDENT expected here");
+                    }
+                    storage_modifier_node.name = storage_modifier_name.value;
+                    Result<decltype(storage_modifier_node), ParserError> t = push_node(storage_modifier_node);
                 }
+                else{
+                    throw std::runtime_error("can happen");
+                }
+            }
+            else{
+                throw std::runtime_error("can happen");
             }
         }
         throw std::runtime_error("not yet implemented");
         return nodes;
     }
 
+    TypeInfo Parser::match_type_name(const std::string& type_name){
+        if (!type_registry.has(type_name)){
+            throw std::runtime_error("Type name \"" + type_name + "\" does not exist");
+        }
+        Result<TypeInfo*, TypeError> type_info = type_registry.get(type_name);
+        if (type_info.check_error() != TypeError::NONE){
+            std::cout << to_string(type_info.check_error()) << std::endl;
+            throw std::runtime_error("");
+        }
+        return *type_info.GetData();
+    }
+
     template <IsNode T>
-    Result<Node, ParserError> Parser::push_node(T& node){
+    Result<T, ParserError> Parser::push_node(T& node){
         std::vector<Token> tokens_node = slice(tokens, start_token_pos, end_token_pos);
         start_token_pos = token_pos; end_token_pos = token_pos;
         shader_node.nodes.push_back(nodes.size());

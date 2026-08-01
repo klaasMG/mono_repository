@@ -22,7 +22,7 @@ class app(QApplication):
         self.event_system = event_system
         self.parent_stop = parent
         self.aboutToQuit.connect(self.on_quit)
-    
+
     def on_quit(self):
         tprint("Application is quitting")
         if self.event_system is not None:
@@ -77,7 +77,7 @@ class GSGUiManager:
         ttf_path = Path("assets/fonts/AovelSansRounded-rdDL.ttf")
         self.font_manager = FontManager()
         self.font_manager.add_font("Font", ttf_path)
-    
+
     def run_ui_manager(self):
         self.GSG_renderer_system = GSGRenderSystem(self)
         self.GSG_renderer_system.show()
@@ -88,12 +88,12 @@ class GSGUiManager:
 
         sys.exit(self.app.exec())
 
-    
+
     def update_ui_manager(self):
         self.ui_manager_queue.receive_event()
         if self.GSG_renderer_system is not None:
             self.GSG_renderer_system.render_update()
-        
+
     def use_event(self, event):
         event_type, data = event
         if event_type == 255:
@@ -109,7 +109,7 @@ class GSGUiManager:
             return True
         else:
             return False
-    
+
     def update_widgets(self):
         while self.running:
             #debug code
@@ -172,7 +172,7 @@ class GSGUiManager:
             if max_event_requests_local is not None:
                 max_event_requests_local -= 1
         return events
-    
+
     def append_widget(self , widget, data):
         if self.free_ids:
             widget.id = self.free_ids.pop()
@@ -181,21 +181,15 @@ class GSGUiManager:
             self.next_id += 1
         self.widgets_by_id[widget.id] = widget
         self.set_default_widget_data(widget, data=data, is_new=True)
-        
+
     def set_widget_data(self, widget, data,is_new):
         self.Widget_update_data.update_widget_data(widget, data, is_new)
-    
+
     def set_default_widget_data(self, widget, data: dict,is_new):
         if data is not None:
-            used = set(data.keys())
-            expected = set(WidgetDataType)
-            excluded = {WidgetDataType.ASSETS_ID, WidgetDataType.ASSETS, WidgetDataType.TEXT, WidgetDataType.TEXT_ID, WidgetDataType.PARENT, WidgetDataType.TEXT_BOXES}
-        
-            missing = expected - excluded - used
-            if missing:
-                raise ValueError(f"Missing enum cases: {missing}")
+            widget_data_validation_func(data)
             self.set_widget_data(widget, data,is_new)
-    
+
     def update_widget(self , widget_id,parent , data=None):
         if not data or len(data) != 14 or data == [-1] * 14:
             return
@@ -230,7 +224,7 @@ class GSGUiManager:
             self.widget_data[WidgetDataType.ASSETS_ID][widget_id] = self.next_asset_id
             self.asset_ids[data[12]] = self.next_asset_id
             self.next_asset_id += 1
-    
+
     def set_widget_defaults(self , widget_id, parent , data = None):
         if not data or len(data) != 14:
             data = [-1] * 14
@@ -263,7 +257,7 @@ class GSGUiManager:
             self.widget_data[WidgetDataType.ASSETS_ID][widget_id] = self.next_asset_id
             self.asset_ids[data[12]] = self.next_asset_id
             self.next_asset_id += 1
-    
+
     def clear_widget_data(self , wid):
         default = -1
         self.widget_data[WidgetDataType.POSITION][wid * 6:wid * 6 + 6] = [default , default , default , default , default , default]
@@ -292,22 +286,73 @@ class GSGUiManager:
     def change_func_rules_for_widget(self, widget: GSGWidget, action: ActionType,func: Callable, rules: Any, key_button: Keys | None | Buttons | str = None):
         widget_id = widget.id
         self.input_registry.change_rules(widget_id, action,func, rules, key_button)
-    
+
     def init_widget_data(self , widget_data_types: dict):
         for key , (size , dtype) in widget_data_types.items():
             arr = np.full(size , -1 , dtype=dtype)
             self.widget_data[key] = arr
-        
+
     def add_asset(self,path):
         self.asset_path.add(path)
-            
+
     def pos_update(self):
         if self.GSG_renderer_system is not None:
             acquired = self.hold_lock.lock(time_out=0.01)
             if acquired:
-                self.GSG_renderer_system.widget_data, self.widget_data = self.widget_data, self.GSG_renderer_system.widget_data
+                self.GSG_renderer_system.widget_data, self.widget_data = (
+                    self.widget_data,
+                    self.GSG_renderer_system.widget_data,
+                )
                 self.buffers_swapped = True
                 self.hold_lock.release()
+
+
+def widget_data_validation_func(data: dict[WidgetDataType, Any]):
+    used = set(data.keys())
+    expected = set(WidgetDataType)
+    excluded = {WidgetDataType.POSITION,WidgetDataType.ASSETS_ID,WidgetDataType.ASSETS,WidgetDataType.TEXT,WidgetDataType.TEXT_ID,WidgetDataType.PARENT,
+                WidgetDataType.TEXT_BOXES,WidgetDataType.ASSET_OR_TEXT, WidgetDataType.PATH_OR_DATA}
+    included = { WidgetDataType.SHADER_PASS, WidgetDataType.COLOUR, WidgetDataType.SHAPE}
+    if WidgetDataType.ASSET_OR_TEXT in used and WidgetDataType.PATH_OR_DATA in used:
+        raise Exception("if text or image is added we expect a path or text")
+    missing = expected - excluded - used
+    if missing:
+        raise ValueError(f"Missing enum cases: {missing}")
+
+def create_grid(gsg_ui_manager: GSGUiManager, width: int, height: int, position: list[int], widget_data: list[dict]):
+    widgets: list[GSGWidget] = []
+    if len(position) != 6:
+        raise Exception("position must be 6 elements")
+    center_widget = GSGWidget(gsg_ui_manager.root)
+    gsg_ui_manager.append_widget(
+        center_widget,
+        {
+            WidgetDataType.POSITION: position,
+            WidgetDataType.SHADER_PASS: 1,
+            WidgetDataType.SHAPE: -122,
+            WidgetDataType.ASSET_OR_TEXT: "help",
+            WidgetDataType.PATH_OR_DATA: None,
+            WidgetDataType.COLOUR: [255, 255, 255, 0],
+        },
+    )
+    widgets.append(center_widget)
+    grid_piece_width = (position[3] - position[0]) / width
+    grid_piece_height = (position[4] - position[1]) / height
+    for i in range(height * width):
+        data = widget_data[i]
+        widget_data_validation_func(data)
+        widget: GSGWidget = GSGWidget(center_widget)
+        widgets.append(widget)
+        grid_widget_data = data
+        row = i // width
+        coll = i % width
+        widget_x_one = position[0] + int(grid_piece_width * coll)
+        widget_y_one = position[1] + int(grid_piece_height * row)
+        widget_x_two = position[0] + int(grid_piece_width * (coll + 1))
+        widget_y_two = position[1] + int(grid_piece_height * (row + 1))
+        grid_widget_data[WidgetDataType.POSITION] = [widget_x_one, widget_x_two, 1, widget_y_one, widget_y_two, 1]
+        gsg_ui_manager.append_widget(widget, grid_widget_data)
+    return widgets
 
 if __name__ == "__main__":
     manager = GSGUiManager()
