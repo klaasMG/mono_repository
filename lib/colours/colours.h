@@ -1,7 +1,27 @@
 #pragma once
+#include <concepts>
 #include <cstdint>
+#include <string>
+#include <type_traits>
+#include <variant>
+
+#include "../cpp_base/Error.h"
 
 namespace Colours {
+    enum class Colours {
+        RGBA8,
+        RGB8,
+        RGBA,
+        RGB,
+        HSL,
+        HSLA,
+        HWB,
+        LAB,
+        OKLAB,
+        LCH,
+        OKLCH
+    };
+
     class RGBA8 {
         public
         :
@@ -104,4 +124,27 @@ namespace Colours {
         float c = 0;
         float h = 0;
     };
+
+    template <typename...>
+    struct type_list {};
+    using colour_types = type_list<
+        RGBA8, RGB8, RGBA, RGB,
+        HSL, HSLA, HWB,
+        LAB, OKLAB, LCH, OKLCH
+    >;
+    template <typename T, typename List>
+    struct is_in_type_list : std::false_type {};
+    template <typename T, typename... Ts>
+    struct is_in_type_list<T, type_list<Ts...>> : std::bool_constant<(std::same_as<T, Ts> || ...)> {};
+    template <typename T>
+    concept IsColourType = is_in_type_list<T, colour_types>::value;
+
+    enum class ColourConvertError {
+
+    };
+
+    std::string to_string(const ColourConvertError& value);
+    using ColourVariant = std::variant<RGBA8, RGB8, RGBA, RGB, HSL, HSLA, HWB, LAB, OKLAB, LCH, OKLCH>;
+    template <IsColourType T>
+    Result<ColourVariant, ColourConvertError> convert(const T& colour, const Colours& target){};
 }

@@ -17,4 +17,3 @@ add_library(GLSL tokeniser_glsl.h tokeniser_glsl.cpp
         parser_glsl.h)
 target_link_libraries(GLSL PRIVATE common_lib)
 target_link_libraries(GLSL PRIVATE fmt::fmt)
-message( WARNING "help me")

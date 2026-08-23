@@ -4,6 +4,10 @@
 #include <stdexcept>
 
 namespace Colours {
+    std::string to_string(const ColourConvertError& value) {
+
+    }
+
     RGB8::RGB8(const uint8_t& r, const uint8_t& g, const uint8_t& b) {
         this->r = r;
         this->g = g;
