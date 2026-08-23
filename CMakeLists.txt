@@ -9,15 +9,6 @@ project(Superbuild LANGUAGES CXX)
 include(ProcessorCount)
 ProcessorCount(N)
 set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} ${N})
-#if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-#    add_compile_options(-Wall -Wextra -Wpedantic)
-
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#    add_compile_options(-Wall -Wextra -Wpedantic)
-
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-#    add_compile_options(/W4)
-#endif()
 
 function(link_compiler_library_statically target)
     if(MSVC)
