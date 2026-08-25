@@ -140,11 +140,38 @@ namespace Colours {
     concept IsColourType = is_in_type_list<T, colour_types>::value;
 
     enum class ColourConvertError {
-
-    };
+    OK,
+    INVALID_SOURCE_TYPE,
+    INVALID_TARGET_ENUM,
+    UNSUPPORTED_CONVERSION,
+    OUT_OF_GAMUT,
+    INVALID_COLOR_VALUES,
+    DIVISION_BY_ZERO,
+    ALPHA_NOT_SUPPORTED,
+};
 
     std::string to_string(const ColourConvertError& value);
+
+    struct LinearRGB {
+        double r, g, b, a;
+    };
+
+    LinearRGB to_linear_srgb(const RGB&);
+    LinearRGB to_linear_srgb(const RGBA&);
+    LinearRGB to_linear_srgb(const RGB8&);
+    LinearRGB to_linear_srgb(const RGBA8&);
+    LinearRGB to_linear_srgb(const HSL&);
+    LinearRGB to_linear_srgb(const HSLA&);
+    LinearRGB to_linear_srgb(const HWB&);
+    LinearRGB to_linear_srgb(const LAB&);
+    LinearRGB to_linear_srgb(const OKLAB&);
+    LinearRGB to_linear_srgb(const LCH&);
+    LinearRGB to_linear_srgb(const OKLCH&);
+
+    template <typename T>
+    // ReSharper disable once CppFunctionIsNotImplemented
+    T from_linear_srgb(const LinearRGB&);
     using ColourVariant = std::variant<RGBA8, RGB8, RGBA, RGB, HSL, HSLA, HWB, LAB, OKLAB, LCH, OKLCH>;
     template <IsColourType T>
-    Result<ColourVariant, ColourConvertError> convert(const T& colour, const Colours& target){};
+    Result<ColourVariant, ColourConvertError> convert(const T& colour, const Colours& target);
 }

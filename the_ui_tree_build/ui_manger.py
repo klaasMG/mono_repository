@@ -149,9 +149,7 @@ class GSGUiManager:
                     WidgetDataType.COLOUR: [255, 255, 25, 255],
                     WidgetDataType.SHADER_PASS: 2,
                     WidgetDataType.SHAPE: -1,
-                    WidgetDataType.PATH_OR_DATA: path_or_data,
-                    WidgetDataType.ASSET_OR_TEXT: "text",
-                },
+                }
             )
 
             def print_key_press_happened():
