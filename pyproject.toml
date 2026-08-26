@@ -17,6 +17,6 @@ exclude = [".venv", "venv", "__pycache__", ".git", "typeshed", "lib/vendor/cpp/f
 target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "B"]
-ignore = ["E501", "F401", "F405"]
+ignore = ["E501", "F401", "F405", "F841"]
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "builtins.print".msg = "Use print_wrapper instead of print."
