@@ -1,6 +1,11 @@
 #!/usr/bin/env just --justfile
 
 set shell := ["powershell.exe", "-Command"]
+
+
+build_setup:
+    
+
 run_ui:
     cd {{justfile_directory()}}
     Remove-Item -Recurse -Force build
